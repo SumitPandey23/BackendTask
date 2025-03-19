@@ -239,10 +239,6 @@ app.post("/add-book", upload.single("coverImage"), async (req, res) => {
 
 app.use("/uploads", express.static("uploads"));
 
-app.get("/", (req, res) => {
-  res.send("Hello, MongoDB World!");
-});
-
 app.listen(3000, () => {
   console.log("Server is running on port 3000");
 });
