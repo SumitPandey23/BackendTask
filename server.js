@@ -156,25 +156,24 @@ app.post("/borrow-book", async (req, res) => {
 });
 
 app.post("/return-book", async (req, res) => {
-  const { bookId, userId } = req.body;
+  const { bookName, email } = req.body;
 
-  if (!bookId || !userId) {
-    return res.status(400).json({ error: "Book ID and User ID are required." });
+  if (!bookName || !email) {
+    return res.status(400).json({ error: "Book Name and Email are required." });
   }
 
   try {
-    const user = await User.findById(userId);
+    const user = await User.findOne({ email: email });
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
 
-    const book = await Book.findById(bookId);
-
+    const book = await Book.findOne({ name: bookName });
     if (!book) {
       return res.status(404).json({ error: "Book not found." });
     }
 
-    if (book.userId.toString() !== userId) {
+    if (book.userId.toString() !== user._id.toString()) {
       return res
         .status(400)
         .json({ error: "You cannot return a book you haven't borrowed." });
@@ -184,9 +183,18 @@ app.post("/return-book", async (req, res) => {
     book.userId = null;
     await book.save();
 
+    user.borrowedBook = null;
+    await user.save();
+
     res.status(200).json({
       message: "Book returned successfully.",
-      book,
+      book: {
+        name: book.name,
+        rented: book.rented,
+      },
+      user: {
+        email: user.email,
+      },
     });
   } catch (error) {
     console.error(error);
